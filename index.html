@@ -1,30 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CADCraft</title>
-  
-<script type="module">
-import init, * as bindings from './cadcraft-web-d875c3c223026021.js';
-const wasm = await init({ module_or_path: './cadcraft-web-d875c3c223026021_bg.wasm' });
-
-
-window.wasmBindings = bindings;
-
-
-dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
-
-</script>
+  <title>Craft Apps</title>
+  <meta name="description" content="Веб-версии CADCraft, PhotoCraft и SolidCraft: запускаются прямо в браузере.">
+  <link rel="icon" type="image/png" href="icons/cadcraft.png">
   <style>
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #22282f; }
-    #cadcraft_canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-    #cadcraft_loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      color: #b8b8b8; font: 14px system-ui, sans-serif; pointer-events: none; }
+    :root {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #1d2229;
+      --muted: #5c6672;
+      --line: #dde1e6;
+      --accent: #1f7fa8;
+      --accent-text: #ffffff;
+      --shadow: 0 1px 2px rgba(20, 30, 40, .06), 0 4px 16px rgba(20, 30, 40, .06);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1b1f24;
+        --card: #252a31;
+        --text: #e6e9ed;
+        --muted: #9aa4af;
+        --line: #343b44;
+        --accent: #3aa6d2;
+        --accent-text: #0e1418;
+        --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    main { width: 100%; max-width: 960px; margin: 0 auto; padding: 48px 16px 24px; flex: 1; }
+    h1 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -.01em; }
+    .lead { color: var(--muted); margin: 0 0 32px; max-width: 60ch; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .head { display: flex; align-items: center; gap: 14px; }
+    .head img { width: 52px; height: 52px; flex: none; }
+    .head h2 { font-size: 18px; margin: 0; }
+    .ver { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .desc { margin: 0; color: var(--muted); flex: 1; }
+    .actions { display: flex; align-items: center; gap: 16px; }
+    .open {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--accent-text);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 9px 18px;
+      border-radius: 8px;
+    }
+    .open:hover { filter: brightness(1.08); }
+    .open:focus-visible, .src:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .src { color: var(--muted); font-size: 13px; }
+    .src:hover { color: var(--text); }
+    footer { max-width: 960px; width: 100%; margin: 0 auto; padding: 16px 16px 32px; color: var(--muted); font-size: 13px; }
+    footer a { color: inherit; }
   </style>
-<link rel="modulepreload" href="./cadcraft-web-d875c3c223026021.js" crossorigin="anonymous" integrity="sha384-jeFBZXStTcVVttphA0QdWIKynl4jMysvBMI9EihbEOI5++FgSClPgll+eU57pNdA"><link rel="modulepreload" href="./snippets/eframe-d31a8450ea12dfc1/inline0.js" crossorigin="anonymous" integrity="sha384-uPZQ72BwgZ4v7Km6+UIFbkDDlt7ShGEsAVEHVN/+wZSGFhItJZB83iKMFQXauTSs"><link rel="preload" href="./cadcraft-web-d875c3c223026021_bg.wasm" crossorigin="anonymous" integrity="sha384-z4qSPVKWm9al23MvrS1RfMrrKiw6bDGiKTTdFNNFuodKv+7R0hINkvVLN5NXiAvK" as="fetch" type="application/wasm"></head>
+</head>
 <body>
-  <canvas id="cadcraft_canvas"></canvas>
-  <div id="cadcraft_loading">Loading CADCraft&hellip;</div>
+  <main>
+    <h1>Craft Apps</h1>
+    <p class="lead">Открытые программы, которые работают прямо в браузере на WebAssembly. Ничего не нужно устанавливать, файлы не уходят на сервер.</p>
+    <div class="grid" id="apps"></div>
+  </main>
+  <footer>
+    Неизменённые веб-сборки из официальных релизов. Лицензии Apache-2.0 / MIT лежат в папке каждой программы.
+  </footer>
+  <script>
+    // Версии обновляются вместе с папками программ.
+    const APPS = [
+      {
+        id: "cadcraft",
+        name: "CADCraft",
+        version: "0.18.0",
+        desc: "2D-черчение в духе AutoCAD: слои, блоки, размеры, листы. Открывает и сохраняет DWG и DXF.",
+        source: "https://github.com/storytold/cadcraft",
+      },
+      {
+        id: "photocraft",
+        name: "PhotoCraft",
+        version: "0.21.0",
+        desc: "Редактор изображений: слои, маски, текст, работа с файлами PSD.",
+        source: "https://github.com/storytold/photocraft",
+      },
+      {
+        id: "solidcraft",
+        name: "SolidCraft",
+        version: "0.30.1",
+        desc: "Параметрическое 3D-моделирование: эскизы, выдавливание, скругления, параметры с перестроением модели.",
+        source: "https://github.com/tangency-labs/solidcraft",
+      },
+    ];
+
+    const grid = document.getElementById("apps");
+    for (const app of APPS) {
+      const card = document.createElement("article");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="head">
+          <img src="icons/${app.id}.png" alt="">
+          <div>
+            <h2>${app.name}</h2>
+            <div class="ver">v${app.version}</div>
+          </div>
+        </div>
+        <p class="desc">${app.desc}</p>
+        <div class="actions">
+          <a class="open" href="${app.id}/">Открыть</a>
+          <a class="src" href="${app.source}" target="_blank" rel="noopener">Исходники</a>
+        </div>`;
+      grid.append(card);
+    }
+  </script>
 </body>
 </html>
