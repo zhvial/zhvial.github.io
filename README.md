@@ -12,6 +12,10 @@ taken from its official GitHub release and served by GitHub Pages:
 | SolidCraft | [`solidcraft/`](solidcraft/) | 0.30.1 | [tangency-labs/solidcraft v0.30.1](https://github.com/tangency-labs/solidcraft/releases/tag/v0.30.1) `solidcraft-web-0.30.1.zip` `acaa73a5638206cf123c56b4c0a5113c83a8bf0149dee6a66b929b00fe444403` |
 
 The apps run entirely in the browser (WebAssembly); there is no server-side code.
+PhotoCraft 0.21.0 only: `photocraft/app/snippets/eframe-d31a8450ea12dfc1/inline0.js` is added as a copy of
+`photocraft/snippets/...` — the release zip lacks it, though `app/photocraft-web.js` imports it from there
+(without it the app hangs on "Loading PhotoCraft…"). Drop the copy once a release ships it.
+
 Each folder keeps the app's own `LICENSE-APACHE`, `LICENSE-MIT` and `NOTICE`.
 Icons in `icons/` come from the apps' repositories under the same licences.
 
