@@ -9,15 +9,22 @@ taken from its official GitHub release and served by GitHub Pages:
 |---|---|---|---|
 | CADCraft | [`cadcraft/`](cadcraft/) | 0.20.1 | [storytold/cadcraft v0.20.1](https://github.com/storytold/cadcraft/releases/tag/v0.20.1) `cadcraft-web-0.20.1.zip` `300e870c50b66d371055915ba95e3ddbfd4c45431466d5214743b5dcab95a0e1` |
 | PhotoCraft | [`photocraft/`](photocraft/) | 0.23.1 | [storytold/photocraft v0.23.1](https://github.com/storytold/photocraft/releases/tag/v0.23.1) `photocraft-web-0.23.1.zip` `3a498eb517bca6cec89f9c6b1fc6448269a05428c8a3a4637c16817da157f03c` |
-| SolidCraft | [`solidcraft/`](solidcraft/) | 0.30.1 | [tangency-labs/solidcraft v0.30.1](https://github.com/tangency-labs/solidcraft/releases/tag/v0.30.1) `solidcraft-web-0.30.1.zip` `acaa73a5638206cf123c56b4c0a5113c83a8bf0149dee6a66b929b00fe444403` |
+| SolidCraft | [`solidcraft/`](solidcraft/) | 0.40.1 | [tangency-labs/solidcraft v0.40.1](https://github.com/tangency-labs/solidcraft/releases/tag/v0.40.1) `solidcraft-web-0.40.1.zip` `08a1537c4e2cbfd129f2cabc4f209e2e25da4529075d268b639a75a0a72fad6e` |
 
 The apps run entirely in the browser (WebAssembly); there is no server-side code.
 PhotoCraft (0.21.0 – 0.23.1): `photocraft/app/snippets/eframe-d31a8450ea12dfc1/inline0.js` is added as a copy of
 `photocraft/snippets/...` — the release zip lacks it, though `app/photocraft-web.js` imports it from there
 (without it the app hangs on "Loading PhotoCraft…"). Drop the copy once a release ships it.
 
+SolidCraft (from 0.40): its wasm is 165 MB, over GitHub's 100 MB file limit, so three changes are made:
+- the wasm is stored as `solidcraft/solidcraft-web-<hash>_bg.wasm.gz` (`gzip -9 -n`);
+- `solidcraft/index.html` fetches it, unpacks it with `DecompressionStream` and checks it against the
+  release's sha384 before starting; its wasm preload link and service-worker registration are removed;
+- `solidcraft/sw.js` gets `VERSION = "dev"`, the release's own switch that retires a worker an earlier
+  build installed, and `build.json` is removed. So this copy has no offline mode.
+
 Each folder keeps the app's own `LICENSE-APACHE`, `LICENSE-MIT` and `NOTICE`.
 Icons in `icons/` come from the apps' repositories under the same licences.
 
 To update an app: replace the contents of its folder with the new release zip's site
-folder, then update the version in `index.html` (`APPS`) and in the table above.
+folder (redo the SolidCraft changes above while its wasm stays over 100 MB), then update the version in `index.html` (`APPS`) and in the table above.
